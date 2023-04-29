@@ -1,0 +1,44 @@
+package com.example.BlogCNTTApi.controller;
+
+import com.example.BlogCNTTApi.dto.ContactDTO;
+import com.example.BlogCNTTApi.dto.VisitorDTO;
+import com.example.BlogCNTTApi.payload.response.ResponseData;
+import com.example.BlogCNTTApi.service.VisitorService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
+
+@RestController
+public class VisitorController {
+
+    @Autowired
+    VisitorService visitorService;
+
+    @PostMapping("visitor")
+    public ResponseEntity<?> postVisitor(@RequestBody @Valid VisitorDTO visitorRequest){
+        visitorService.createVisitor(visitorRequest);
+        ResponseData responseData = new ResponseData(true, HttpStatus.OK.value(), "OK");
+        return new ResponseEntity<ResponseData>(responseData,HttpStatus.OK);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> handleValidationExceptions(
+            MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        ResponseData responseData = new ResponseData(false,HttpStatus.BAD_REQUEST.value(), errors);
+        return new ResponseEntity<ResponseData>(responseData,HttpStatus.BAD_REQUEST);
+    }
+}
